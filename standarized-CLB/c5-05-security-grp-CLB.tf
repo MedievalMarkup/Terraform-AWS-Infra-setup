@@ -2,7 +2,7 @@ module "sg_loadbalancer" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "5.1.0"
 
-  name = "sg-loadbalancer"
+  name = "loadbalancer-sg"
   description = "security group with http port open for entire internet"
 
   vpc_id = module.vpc.vpc_id

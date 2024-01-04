@@ -4,7 +4,7 @@ module "elb" {
 
   name = "${local.name}-elb"
 
-  subnets         = [module.vpc.public_subnets]
+  subnets         = [for id in module.vpc.public_subnets: id]
   security_groups = [module.sg_loadbalancer.security_group_id]
   # internal        = false
 
