@@ -1,4 +1,3 @@
-# https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
 module "alb" {
 
   source  = "terraform-aws-modules/alb/aws"
@@ -39,28 +38,33 @@ module "alb" {
   # }
 
   listeners = {
-    ex-http-https-redirect = {
-      port     = 80
-      protocol = "HTTP"
-      redirect = {
-        port        = "443"
-        protocol    = "HTTPS"
-        status_code = "HTTP_301"
-      }
-    }
-    ex-https = {
-      port            = 443
-      protocol        = "HTTPS"
-      certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
+    # ex-http-https-redirect = {
+    #   port     = 80
+    #   protocol = "HTTP"
+    #   redirect = {
+    #     port        = "443"
+    #     protocol    = "HTTPS"
+    #     status_code = "HTTP_301"
+    #   }
+    # }
+    my-http-listener = {
+      # port            = 443
+      # protocol        = "HTTPS"
+      # certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
+
+      port            = 80
+      protocol        = "HTTP"
 
       forward = {
-        target_group_key = "ex-instance"
+        target_group_key = "alb-tg-1"
       }
     }
   }
 
   target_groups = {
     alb-tg-1 = {
+      # https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
+      create_attachment                 = false
       name_prefix                       = "alb-tg-"
       protocol                          = "HTTP"
       port                              = 80
