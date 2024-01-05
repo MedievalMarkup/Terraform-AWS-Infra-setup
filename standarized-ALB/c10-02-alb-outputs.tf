@@ -1,29 +1,86 @@
-output "elb_id" {
-  description = "The name of the ELB"
-  value       = module.elb.elb_id
+################################################################################
+# ALB
+################################################################################
+
+output "id" {
+  description = "The ID and ARN of the load balancer we created"
+  value       = module.alb.id
 }
 
-output "elb_name" {
-  description = "The name of the ELB"
-  value       = module.elb.elb_name
+output "arn" {
+  description = "The ID and ARN of the load balancer we created"
+  value       = module.alb.arn
 }
 
-output "elb_dns_name" {
-  description = "The DNS name of the ELB"
-  value       = module.elb.elb_dns_name
+output "arn_suffix" {
+  description = "ARN suffix of our load balancer - can be used with CloudWatch"
+  value       = module.alb.arn_suffix
 }
 
-output "elb_instances" {
-  description = "The list of instances in the ELB (if may be outdated, because instances are attached using elb_attachment resource)"
-  value       = module.elb.elb_instances
+output "dns_name" {
+  description = "The DNS name of the load balancer"
+  value       = module.alb.dns_name
 }
 
-output "elb_source_security_group_id" {
-  description = "The ID of the security group that you can use as part of your inbound rules for your load balancer's back-end application instances"
-  value       = module.elb.elb_source_security_group_id
+output "zone_id" {
+  description = "The zone_id of the load balancer to assist with creating DNS records"
+  value       = module.alb.zone_id
 }
 
-output "elb_zone_id" {
-  description = "The canonical hosted zone ID of the ELB (to be used in a Route 53 Alias record)"
-  value       = module.elb.elb_zone_id
+################################################################################
+# Listener(s)
+################################################################################
+
+output "listeners" {
+  description = "Map of listeners created and their attributes"
+  value       = module.alb.listeners
+  sensitive   = true
+}
+
+output "listener_rules" {
+  description = "Map of listeners rules created and their attributes"
+  value       = module.alb.listener_rules
+  sensitive   = true
+}
+
+################################################################################
+# Target Group(s)
+################################################################################
+
+output "target_groups" {
+  description = "Map of target groups created and their attributes"
+  value       = module.alb.target_groups
+}
+
+################################################################################
+# Security Group
+################################################################################
+
+output "security_group_arn" {
+  description = "Amazon Resource Name (ARN) of the security group"
+  value       = module.alb.security_group_arn
+}
+
+output "security_group_id" {
+  description = "ID of the security group"
+  value       = module.alb.security_group_id
+}
+
+################################################################################
+# Route53 Record(s)
+################################################################################
+
+output "route53_records" {
+  description = "The Route53 records created and attached to the load balancer"
+  value       = module.alb.route53_records
+}
+
+################################################################################
+#                FOR DEBUGGING
+################################################################################
+
+output "test_ec2_private_loop" {
+  value = {
+    for ec2_instance, ec2_instance_details in module.ec2-private: ec2_instance => ec2_instance_details
+  }
 }
