@@ -65,7 +65,7 @@ module "alb" {
     alb-tg-1 = {
       # https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
       create_attachment                 = false
-      name_prefix                       = "alb-tg-"
+      name_prefix                       = "albtg-"
       protocol                          = "HTTP"
       port                              = 80
       target_type                       = "instance"
