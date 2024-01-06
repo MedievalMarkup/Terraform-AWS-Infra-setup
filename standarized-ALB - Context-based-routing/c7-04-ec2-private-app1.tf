@@ -1,10 +1,10 @@
-module "ec2-private" {
+module "ec2-private-app1" {
   source  = "terraform-aws-modules/ec2-instance/aws"
   version = "5.6.0"
 
 	#in_case multiple instance
 	for_each               = toset(["0", "1"])
-  name                   = "private-ec2-${each.key}"
+  name                   = "private-ec2-${each.key}-app1"
   ami                    = data.aws_ami.amzlinux2.id
   instance_type          = var.instance_type
   key_name               = var.instance_keypair
