@@ -55,7 +55,7 @@ module "alb" {
       certificate_arn = module.acm.acm_certificate_arn
 
       forward = {
-        target_group_key = "alb-tg-2"
+        target_group_key = "alb2tg"
       }
 
 
@@ -75,7 +75,7 @@ module "alb" {
             type = "weighted-forward"
             target_groups = [
               {
-                target_group_key = "alb-tg-1"
+                target_group_key = "alb1tg"
                 weight           = 1
               }
             ]
@@ -88,9 +88,9 @@ module "alb" {
             path_pattern = {
               values = ["/app1*"]
             }
-            host_header = {
-              values = [var.app1_dns_name]
-            }
+            # host_header = {
+            #   values = [var.app1_dns_name]
+            # }
           }]
         }# End of myapp1-rule
         # Rule-2: myapp2-rule
@@ -99,7 +99,7 @@ module "alb" {
             type = "weighted-forward"
             target_groups = [
               {
-                target_group_key = "alb-tg-2"
+                target_group_key = "alb2tg"
                 weight           = 1
               }
             ]
@@ -113,9 +113,9 @@ module "alb" {
             path_pattern = {
               values = ["/app2*"]
             }
-            host_header = {
-              values = [var.app2_dns_name]
-            }
+            # host_header = {
+            #   values = [var.app2_dns_name]
+            # }
           }]
         }# End of myapp2-rule Block
       }# End Rules Block
@@ -126,16 +126,16 @@ module "alb" {
       protocol        = "HTTP"
 
       forward = {
-        target_group_key = "alb-tg-1"
+        target_group_key = "alb1tg"
       }
     }
   }
 
   target_groups = {
-    alb-tg-1 = {
+    alb1tg = {
       # https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
       create_attachment                 = false
-      name_prefix                       = "alb1tg-"
+      name_prefix                       = "alb1tg"
       protocol                          = "HTTP"
       port                              = 80
       target_type                       = "instance"
@@ -160,10 +160,10 @@ module "alb" {
       tags = local.common_tags
     }
 
-    alb-tg-2 = {
+    alb2tg = {
       # https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
       create_attachment                 = false
-      name_prefix                       = "alb2tg-"
+      name_prefix                       = "alb2tg"
       protocol                          = "HTTP"
       port                              = 80
       target_type                       = "instance"
@@ -193,24 +193,24 @@ module "alb" {
 
 
 
-resource "aws_lb_target_group_attachment" "alb-tg-1" {
+resource "aws_lb_target_group_attachment" "alb1tg" {
   # k -> ec2 instance
   # v -> ec2 instance details
   for_each         = {
     for k, v in module.ec2-private-app1: k => v
   }
-  target_group_arn = module.alb.target_groups["alb-tg-1"].arn
+  target_group_arn = module.alb.target_groups["alb1tg"].arn
   target_id        = each.value.id
   port             = 80
 }
 
-resource "aws_lb_target_group_attachment" "alb-tg-2" {
+resource "aws_lb_target_group_attachment" "alb2tg" {
   # k -> ec2 instance
   # v -> ec2 instance details
   for_each         = {
     for k, v in module.ec2-private-app2: k => v
   }
-  target_group_arn = module.alb.target_groups["alb-tg-2"].arn
+  target_group_arn = module.alb.target_groups["alb2tg"].arn
   target_id        = each.value.id
   port             = 80
 }

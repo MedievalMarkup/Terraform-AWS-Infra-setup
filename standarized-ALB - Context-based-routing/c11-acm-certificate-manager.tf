@@ -5,7 +5,8 @@ module "acm" {
   #---this thing will be invalid for internal domain 'test.com.something' to make that work use 'trimsuffix(data.aws_route53_zone.mydomain.name, ".")'---#
   #---below will work for non internal domain 'test.com'
 
-  domain_name  = data.aws_route53_zone.mydomain.name
+  # domain_name  = data.aws_route53_zone.mydomain.name
+  domain_name  = trimsuffix(data.aws_route53_zone.mydomain.name, ".")
   zone_id      = data.aws_route53_zone.mydomain.zone_id
 
   validation_method = "DNS"

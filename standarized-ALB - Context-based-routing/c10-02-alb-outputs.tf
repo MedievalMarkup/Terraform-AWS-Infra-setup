@@ -79,8 +79,8 @@ output "route53_records" {
 #                FOR DEBUGGING
 ################################################################################
 
-output "test_ec2_private_loop" {
-  value = {
-    for ec2_instance, ec2_instance_details in module.ec2-private: ec2_instance => ec2_instance_details
-  }
-}
+# output "test_ec2_private_loop" {
+#   value = {
+#     for ec2_instance, ec2_instance_details in module.ec2-private: ec2_instance => ec2_instance_details
+#   }
+# }

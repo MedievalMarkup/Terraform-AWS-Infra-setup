@@ -5,7 +5,7 @@ resource "null_resource" "configure-EC2-Machine" {
     host        = aws_eip.bastion-eip.public_ip
     user        = "ec2-user"
     password    = ""
-    private_key = file("private-key/terraform-key.pem")
+    private_key = file("app1-key/terraform-key.pem")
   }
 
   provisioner "file" {
