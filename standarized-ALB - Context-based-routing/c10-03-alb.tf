@@ -38,20 +38,90 @@ module "alb" {
   # }
 
   listeners = {
-    # ex-http-https-redirect = {
-    #   port     = 80
-    #   protocol = "HTTP"
-    #   redirect = {
-    #     port        = "443"
-    #     protocol    = "HTTPS"
-    #     status_code = "HTTP_301"
-    #   }
-    # }
-    my-http-listener = {
-      # port            = 443
-      # protocol        = "HTTPS"
-      # certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
+    ex-http-https-redirect = {
+      port     = 80
+      protocol = "HTTP"
+      redirect = {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
+    }
 
+    my-https-listener = {
+      port            = 443
+      protocol        = "HTTPS"
+      ssl_policy      = "ELBSecurityPolicy-TLS13-1-2-Res-2021-06"
+      certificate_arn = module.acm.acm_certificate_arn
+
+      forward = {
+        target_group_key = "alb-tg-2"
+      }
+
+
+      rules = {
+        fixed-response = {
+          priority = 3
+          actions = [{
+            type         = "fixed-response"
+            content_type = "text/plain"
+            status_code  = 200
+            message_body = "This is a fixed response"
+          }]
+        }
+
+        myapp1-rule = {
+          actions = [{
+            type = "weighted-forward"
+            target_groups = [
+              {
+                target_group_key = "alb-tg-1"
+                weight           = 1
+              }
+            ]
+            stickiness = {
+              enabled  = true
+              duration = 3600
+            }
+          }]
+          conditions = [{
+            path_pattern = {
+              values = ["/app1*"]
+            }
+            host_header = {
+              values = [var.app1_dns_name]
+            }
+          }]
+        }# End of myapp1-rule
+        # Rule-2: myapp2-rule
+        myapp2-rule = {
+          actions = [{
+            type = "weighted-forward"
+            target_groups = [
+              {
+                target_group_key = "alb-tg-2"
+                weight           = 1
+              }
+            ]
+            stickiness = {
+              enabled  = true
+              duration = 3600
+            }
+          }]
+          conditions = [{
+
+            path_pattern = {
+              values = ["/app2*"]
+            }
+            host_header = {
+              values = [var.app2_dns_name]
+            }
+          }]
+        }# End of myapp2-rule Block
+      }# End Rules Block
+
+      }
+    my-http-listener = {
       port            = 80
       protocol        = "HTTP"
 
@@ -65,7 +135,7 @@ module "alb" {
     alb-tg-1 = {
       # https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
       create_attachment                 = false
-      name_prefix                       = "albtg-"
+      name_prefix                       = "alb1tg-"
       protocol                          = "HTTP"
       port                              = 80
       target_type                       = "instance"
@@ -89,18 +159,58 @@ module "alb" {
       # port             = 80
       tags = local.common_tags
     }
+
+    alb-tg-2 = {
+      # https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
+      create_attachment                 = false
+      name_prefix                       = "alb2tg-"
+      protocol                          = "HTTP"
+      port                              = 80
+      target_type                       = "instance"
+      deregistration_delay              = 10
+      load_balancing_cross_zone_enabled = false
+
+      health_check = {
+        enabled             = true
+        interval            = 30
+        path                = "/app2/index.html"
+        port                = "traffic-port"
+        healthy_threshold   = 3
+        unhealthy_threshold = 3
+        timeout             = 6
+        protocol            = "HTTP"
+        matcher             = "200-399"
+      }
+
+      protocol_version = "HTTP1"
+      # target_id        = aws_instance.this.id
+      # port             = 80
+      tags = local.common_tags
+    }
   }
 
-  tags = local.common_tags
-}
+} 
+
+
 
 resource "aws_lb_target_group_attachment" "alb-tg-1" {
   # k -> ec2 instance
   # v -> ec2 instance details
   for_each         = {
-    for k, v in module.ec2-private: k => v
+    for k, v in module.ec2-private-app1: k => v
   }
   target_group_arn = module.alb.target_groups["alb-tg-1"].arn
+  target_id        = each.value.id
+  port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "alb-tg-2" {
+  # k -> ec2 instance
+  # v -> ec2 instance details
+  for_each         = {
+    for k, v in module.ec2-private-app2: k => v
+  }
+  target_group_arn = module.alb.target_groups["alb-tg-2"].arn
   target_id        = each.value.id
   port             = 80
 }
