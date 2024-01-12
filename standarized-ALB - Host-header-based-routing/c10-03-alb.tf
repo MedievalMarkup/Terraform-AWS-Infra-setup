@@ -47,7 +47,6 @@ module "alb" {
         status_code = "HTTP_301"
       }
     }
-
     my-https-listener = {
       port            = 443
       protocol        = "HTTPS"
@@ -85,11 +84,17 @@ module "alb" {
             }
           }]
           conditions = [{
+            # ------------ context path based routing --------- #
             # path_pattern = {
-            #   values = ["/app1*"]
+            #   values = ["/app2*"]
+            # }
+            # ------------ host header based routing --------- #
+            # host_header = {
+            #   values = [var.app2_dns_name]
             # }
             host_header = {
-              values = [var.app1_dns_name]
+              http_header_name = "custom-header"
+              values = ["app-1", "app1", "my-app-1"]
             }
           }]
         }# End of myapp1-rule
@@ -109,14 +114,38 @@ module "alb" {
             }
           }]
           conditions = [{
+            # ------------ context path based routing --------- #
             # path_pattern = {
             #   values = ["/app2*"]
             # }
+            # ------------ host header based routing ---------- #
+            # host_header = {
+            #   values = [var.app2_dns_name]
+            # }
             host_header = {
-              values = [var.app2_dns_name]
+              http_header_name = "custom-header"
+              values = ["app-2", "app2", "my-app-2"]
             }
           }]
         }# End of myapp2-rule Block
+        # ----------- Query String Redirect Rule ----------- #
+        my-query-redirect = {
+          priority = 3
+          actions = [{
+            type        = "redirect"
+            status_code = "HTTP_302"
+            host        = "test.com"
+            path        = "/aws-eks/"
+            query       = ""
+            protocol    = "HTTPS"
+          }]
+
+          conditions = [{
+            query_string = {
+              key = "website"
+              value = "aws_eks"
+            }
+          }]
       }# End Rules Block
 
       }
@@ -188,6 +217,7 @@ module "alb" {
     }
   }
 
+  }
 } 
 
 
