@@ -38,7 +38,7 @@ module "alb" {
   # }
 
   listeners = {
-    ex-http-https-redirect = {
+    my-http-https-redirect = {
       port     = 80
       protocol = "HTTP"
       redirect = {
@@ -70,6 +70,7 @@ module "alb" {
         }
 
         myapp1-rule = {
+          priority = 10
           actions = [{
             type = "weighted-forward"
             target_groups = [
@@ -98,8 +99,10 @@ module "alb" {
             }
           }]
         }# End of myapp1-rule
+
         # Rule-2: myapp2-rule
         myapp2-rule = {
+          priority = 20
           actions = [{
             type = "weighted-forward"
             target_groups = [
@@ -128,6 +131,38 @@ module "alb" {
             }
           }]
         }# End of myapp2-rule Block
+
+        myapp3-rule = {
+          priority = 30
+          actions = [{
+            type = "weighted-forward"
+            target_groups = [
+              {
+                target_group_key = "alb3tg"
+                weight           = 1
+              }
+            ]
+            stickiness = {
+              enabled  = true
+              duration = 3600
+            }
+          }]
+          conditions = [{
+            # ------------ context path based routing --------- #
+            path_pattern = {
+              values = ["/*"]
+            }
+            # ------------ host header based routing ---------- #
+            # host_header = {
+            #   values = [var.app2_dns_name]
+            # }
+            # host_header = {
+            #   http_header_name = "custom-header"
+            #   values = ["app-2", "app2", "my-app-2"]
+            # }
+          }]
+        }
+
         # ----------- Query String Redirect Rule ----------- #
         my-query-redirect = {
           priority = 3
@@ -146,7 +181,7 @@ module "alb" {
               value = "aws_eks"
             }
           }]
-      }# End Rules Block
+        }# End Rules Block
 
       }
     my-http-listener = {
@@ -215,6 +250,34 @@ module "alb" {
       # port             = 80
       tags = local.common_tags
     }
+
+    alb3tg = {
+      # https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
+      create_attachment                 = false
+      name_prefix                       = "alb3tg"
+      protocol                          = "HTTP"
+      port                              = 8080
+      target_type                       = "instance"
+      deregistration_delay              = 10
+      load_balancing_cross_zone_enabled = false
+
+      health_check = {
+        enabled             = true
+        interval            = 30
+        path                = "/login"
+        port                = "traffic-port"
+        healthy_threshold   = 3
+        unhealthy_threshold = 3
+        timeout             = 6
+        protocol            = "HTTP"
+        matcher             = "200-399"
+      }
+
+      protocol_version = "HTTP1"
+      # target_id        = aws_instance.this.id
+      # port             = 80
+      tags = local.common_tags
+    }
   }
 
   }
@@ -242,4 +305,15 @@ resource "aws_lb_target_group_attachment" "alb2tg" {
   target_group_arn = module.alb.target_groups["alb2tg"].arn
   target_id        = each.value.id
   port             = 80
+}
+
+resource "aws_lb_target_group_attachment" "alb3tg" {
+  # k -> ec2 instance
+  # v -> ec2 instance details
+  for_each         = {
+    for k, v in module.ec2-private-app2: k => v
+  }
+  target_group_arn = module.alb.target_groups["alb3tg"].arn
+  target_id        = each.value.id
+  port             = 8080
 }

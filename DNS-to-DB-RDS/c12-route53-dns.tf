@@ -39,3 +39,17 @@ resource "aws_route53_record" "apps2_dns" {
     evaluate_target_health = true
   }
 }
+
+resource "aws_route53_record" "apps3_dns" {
+  zone_id = data.aws_route53_zone.mydomain.zone_id
+  name    = "dns-to-db.test.com"
+  type    = "A"
+#---ttl for non alias records---#
+#   ttl     = 300
+#   records = [aws_eip.lb.public_ip]
+  alias {
+    name                   = module.alb.dns_name
+    zone_id                = module.alb.zone_id
+    evaluate_target_health = true
+  }
+}
