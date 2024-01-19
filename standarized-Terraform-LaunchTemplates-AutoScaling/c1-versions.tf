@@ -6,6 +6,11 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
+
+    random = {
+      region  = var.aws_region
+      profile = "default"
+    }
   }
 }
 
@@ -18,3 +23,7 @@ provider "aws" {
 Note-1:  AWS Credentials Profile (profile = "default") configured on your local desktop terminal  
 $HOME/.aws/credentials
 */
+
+resource "random_pet" "this" {
+  length = 2
+}

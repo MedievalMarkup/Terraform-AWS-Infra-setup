@@ -1,6 +1,6 @@
 resource "aws_route53_record" "apps_dns" {
   zone_id = data.aws_route53_zone.mydomain.zone_id
-  name    = "apps.test.com"
+  name    = "asg-lt1.test.com"
   type    = "A"
 #---ttl for non alias records---#
 #   ttl     = 300

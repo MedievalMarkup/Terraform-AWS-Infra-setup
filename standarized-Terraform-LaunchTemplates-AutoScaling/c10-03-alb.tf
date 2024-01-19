@@ -62,10 +62,10 @@ module "alb" {
   }
 
   target_groups = {
-    alb-tg-1 = {
+    albtg1 = {
       # https://github.com/terraform-aws-modules/terraform-aws-alb/issues/316 
       create_attachment                 = false
-      name_prefix                       = "albtg-"
+      name_prefix                       = "albtg1"
       protocol                          = "HTTP"
       port                              = 80
       target_type                       = "instance"
@@ -94,13 +94,13 @@ module "alb" {
   tags = local.common_tags
 }
 
-resource "aws_lb_target_group_attachment" "alb-tg-1" {
+resource "aws_lb_target_group_attachment" "albtg1" {
   # k -> ec2 instance
   # v -> ec2 instance details
   for_each         = {
     for k, v in module.ec2-private: k => v
   }
-  target_group_arn = module.alb.target_groups["alb-tg-1"].arn
+  target_group_arn = module.alb.target_groups["albtg1"].arn
   target_id        = each.value.id
   port             = 80
 }
