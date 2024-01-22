@@ -9,7 +9,8 @@ module "private_sg" {
 
   #Ingress & CIDR
   ingress_rules       = ["ssh-tcp", "http-80-tcp"]
-  ingress_cidr_blocks = [module.vpc.vpc_cidr_block]
+  # ingress_cidr_blocks = [module.vpc.vpc_cidr_block]
+  ingress_cidr_blocks = ["0.0.0.0/0"] # Required for NLB
 
   # Open to CIDRs blocks (rule or from_port+to_port+protocol+description) - above way also work, and this also. 
   ingress_with_cidr_blocks = [
